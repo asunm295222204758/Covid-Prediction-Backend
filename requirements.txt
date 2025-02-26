@@ -1,4 +1,11 @@
-tensorflow>=2.10.0
-opencv-python>=4.5.0
-numpy>=1.19.0
-scikit-learn>=0.24.0
+Flask==3.1.0
+numpy==1.26.4
+pandas==2.2.1
+tensorflow==2.16.1
+scikit-learn==1.4.1
+opencv-python==4.9.0.80
+Pillow==10.2.0
+matplotlib==3.8.3
+Werkzeug==3.0.1
+gunicorn==21.2.0
+
