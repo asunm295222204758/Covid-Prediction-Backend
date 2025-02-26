@@ -1,33 +1,37 @@
 import os
 import logging
+import gdown
 import tensorflow as tf
 from flask import Flask, request, jsonify
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 import numpy as np
 
-# Initialize Flask app
 app = Flask(__name__)
-
-# Skip ngrok warning
-@app.before_request
-def skip_ngrok_warning():
-    if request.headers.get("ngrok-skip-browser-warning") != "true":
-        return jsonify({"error": "ngrok-skip-browser-warning header is missing"}), 403
 
 # Disable GPU and suppress warnings
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 logging.getLogger('tensorflow').setLevel(logging.ERROR)
 
-# Model path
-model_path = '/content/drive/MyDrive/Backend/final_model.h5'
-if not os.path.exists(model_path):
-    raise FileNotFoundError(f"Error: Model file not found at {model_path}")
+# Google Drive file ID
+GDRIVE_FILE_ID = "1F3CyYozjJlPSfKanlm0n2SmqOyT5rQ8L"
+MODEL_PATH = "final_model.h5"
+
+# Function to download model from Google Drive
+def download_model():
+    if not os.path.exists(MODEL_PATH):
+        print("📥 Downloading model from Google Drive...")
+        gdown.download(f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}", MODEL_PATH, quiet=False)
+    else:
+        print("✅ Model already exists, skipping download.")
+
+# Download the model
+download_model()
 
 # Load the trained model
 try:
-    model = load_model(model_path)
+    model = load_model(MODEL_PATH)
     print("✅ Model loaded successfully.")
 except Exception as e:
     raise RuntimeError(f"🚫 Failed to load model: {str(e)}")
@@ -70,3 +74,4 @@ def predict():
 # Run the Flask app
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
+
