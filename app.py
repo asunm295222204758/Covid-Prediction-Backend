@@ -6,13 +6,14 @@ from flask import Flask, request, jsonify
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 import numpy as np
+from werkzeug.utils import secure_filename  # Fix file name issues
 
 app = Flask(__name__)
 
 # Disable GPU and suppress warnings
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-logging.getLogger('tensorflow').setLevel(logging.ERROR)
+logging.basicConfig(level=logging.INFO)
 
 # Google Drive file ID
 GDRIVE_FILE_ID = "1F3CyYozjJlPSfKanlm0n2SmqOyT5rQ8L"
@@ -21,10 +22,14 @@ MODEL_PATH = "final_model.h5"
 # Function to download model from Google Drive
 def download_model():
     if not os.path.exists(MODEL_PATH):
-        print("📥 Downloading model from Google Drive...")
-        gdown.download(f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}", MODEL_PATH, quiet=False)
+        logging.info("📥 Downloading model from Google Drive...")
+        try:
+            gdown.download(f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}", MODEL_PATH, quiet=False)
+        except Exception as e:
+            logging.error(f"🚫 Model download failed: {str(e)}")
+            exit(1)
     else:
-        print("✅ Model already exists, skipping download.")
+        logging.info("✅ Model already exists, skipping download.")
 
 # Download the model
 download_model()
@@ -32,9 +37,10 @@ download_model()
 # Load the trained model
 try:
     model = load_model(MODEL_PATH)
-    print("✅ Model loaded successfully.")
+    logging.info("✅ Model loaded successfully.")
 except Exception as e:
-    raise RuntimeError(f"🚫 Failed to load model: {str(e)}")
+    logging.error(f"🚫 Failed to load model: {str(e)}")
+    exit(1)
 
 # Function to preprocess CT scan image
 def preprocess_image(image_path):
@@ -53,7 +59,8 @@ def predict():
         return jsonify({'error': '🚫 No CT scan uploaded'}), 400
 
     file = request.files['ct_scan']
-    image_path = 'temp_ct_scan.png'
+    filename = secure_filename(file.filename)  # Secure filename
+    image_path = os.path.join("temp_" + filename)
     file.save(image_path)
 
     try:
@@ -70,6 +77,11 @@ def predict():
     finally:
         if os.path.exists(image_path):
             os.remove(image_path)
+
+# Run the Flask app
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=False)
+
 
 # Run the Flask app
 if __name__ == '__main__':
