@@ -78,12 +78,12 @@ def predict():
         if os.path.exists(image_path):
             os.remove(image_path)
 
+# Route for testing if the server is running
+@app.route("/")
+def home():
+    return "Hello, Railway!"
+
 # Run the Flask app
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
-
-
-# Run the Flask app
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
-
+    port = int(os.environ.get("PORT", 5000))  # ✅ Get PORT from Railway environment variable
+    app.run(host='0.0.0.0', port=port, debug=False)  # ✅ Listen on all interfaces
