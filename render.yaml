@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: covid19-backend
+    env: python
+    region: oregon  # Change if needed
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -w 4 -b 0.0.0.0:5000 app:app
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: GDRIVE_FILE_ID
+        value: "1F3CyYozjJlPSfKanlm0n2SmqOyT5rQ8L"
